@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Task",
+  "description": "A task to be executed by a remote node",
+  "type": "object",
+  "required": ["task_id", "task_type", "created_by", "target_node", "status"],
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "description": "Unique task identifier",
+      "example": "task_001"
+    },
+    "task_type": {
+      "type": "string",
+      "enum": ["analysis", "translation", "writing", "search", "custom"],
+      "description": "Type of task"
+    },
+    "input_ref": {
+      "type": "string",
+      "description": "Path or URL to input data",
+      "example": "input/document.txt"
+    },
+    "instructions": {
+      "type": "string",
+      "description": "Human-readable task instructions"
+    },
+    "created_by": {
+      "type": "string",
+      "description": "Node ID of the creator"
+    },
+    "target_node": {
+      "type": "string",
+      "description": "Node ID of the intended executor"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "accepted", "in_progress", "completed", "failed"],
+      "default": "pending"
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["low", "normal", "high"],
+      "default": "normal"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "deadline": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "constraints": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Output constraints (e.g. language, format)"
+    }
+  }
+}

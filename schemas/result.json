@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Result",
+  "description": "Result produced by a worker node after completing a task",
+  "type": "object",
+  "required": ["task_id", "produced_by", "status"],
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "description": "ID of the original task"
+    },
+    "produced_by": {
+      "type": "string",
+      "description": "Node ID of the producer"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["completed", "failed", "partial"],
+      "description": "Task outcome"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Short structured summary of the result"
+    },
+    "artifacts": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Paths to output files produced"
+    },
+    "error": {
+      "type": "string",
+      "description": "Error message if status is failed"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "token_usage": {
+      "type": "object",
+      "properties": {
+        "input": { "type": "integer" },
+        "output": { "type": "integer" }
+      },
+      "description": "Token cost for this task"
+    }
+  }
+}
