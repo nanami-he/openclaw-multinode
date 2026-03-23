@@ -17,18 +17,20 @@ This is different from sub-agent decomposition within a single instance: the goa
 
 ## Current status
 
-Early prototype / design exploration.
+Early prototype and protocol design for two-node artifact handoff.
 
-## Quick start
+## Quick overview
 
 ```bash
 # Clone
 git clone https://github.com/nanami-he/openclaw-multinode.git
 cd openclaw-multinode
 
-# Read the docs
+# Read the design
 cat docs/architecture.md
 cat docs/protocol.md
+cat schemas/task.json
+cat schemas/result.json
 cat examples/basic_two_node_flow.md
 ```
 
@@ -48,6 +50,31 @@ Node A (local)              Node B (remote)
           │  result.json        │
           └─────────────────────┘
 ```
+
+## How handoff works
+
+**Node A sends a task:**
+```json
+{
+  "task_id": "task_001",
+  "task_type": "analysis",
+  "input_ref": "input/document.txt",
+  "target_node": "node_remote",
+  "status": "pending"
+}
+```
+
+**Node B returns a result:**
+```json
+{
+  "task_id": "task_001",
+  "produced_by": "node_remote",
+  "status": "completed",
+  "artifacts": ["output/result.txt"]
+}
+```
+
+Full schema: [schemas/task.json](schemas/task.json) | [schemas/result.json](schemas/result.json)
 
 ## Relationship to OpenClaw
 
