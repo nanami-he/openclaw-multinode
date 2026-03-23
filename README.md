@@ -19,6 +19,8 @@ This is different from sub-agent decomposition within a single instance: the goa
 
 Early prototype and protocol design for two-node artifact handoff.
 
+**Current milestone:** documenting the handoff protocol and preparing a two-node prototype.
+
 ## Quick overview
 
 ```bash
