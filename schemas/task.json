@@ -21,7 +21,7 @@
     },
     "created_by": {
       "type": "string",
-      "example": "emperor"
+      "example": "chamberlain"
     },
     "target_node": {
       "type": "string",

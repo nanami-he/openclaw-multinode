@@ -30,7 +30,7 @@ cat > "$TASK_DIR/task.json" <<EOF
   "task_id": "$TASK_ID",
   "task_type": "$TASK_TYPE",
   "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-  "created_by": "emperor",
+  "created_by": "chamberlain",
   "target_node": "prime",
   "status": "pending",
   "input_ref": "$INPUT_REF",

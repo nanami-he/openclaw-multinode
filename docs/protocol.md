@@ -2,10 +2,12 @@
 
 ## 节点
 
-| 节点 | 角色 | 名称 |
+| 角色 | 名称 | 说明 |
 |------|------|------|
-| 本地 Mac | Emperor | emperor |
-| 腾讯云 | Prime | prime |
+| Emperor | — | 七海様，最终意志来源（人类） |
+| Lord Chamberlain | chamberlain | 本地 Mac，贴身近臣 |
+| Prime Minister | prime | 云端节点，常驻在线，调度执行 |
+| Cabinet | cabinet-01 | 专项节点，后续扩展 |
 
 ## 目录结构
 
