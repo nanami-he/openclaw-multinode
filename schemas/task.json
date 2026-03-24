@@ -3,57 +3,42 @@
   "title": "Task",
   "description": "A task to be executed by a remote node",
   "type": "object",
-  "required": ["task_id", "task_type", "created_by", "target_node", "status"],
+  "required": ["task_id", "task_type", "created_at", "created_by", "target_node", "status"],
   "properties": {
     "task_id": {
       "type": "string",
-      "description": "Unique task identifier",
-      "example": "task_001"
+      "pattern": "^task-[0-9]{8}-[0-9]{4}$",
+      "example": "task-20260324-0001"
     },
     "task_type": {
       "type": "string",
       "enum": ["analysis", "translation", "writing", "search", "custom"],
       "description": "Type of task"
     },
-    "input_ref": {
+    "created_at": {
       "type": "string",
-      "description": "Path or URL to input data",
-      "example": "input/document.txt"
-    },
-    "instructions": {
-      "type": "string",
-      "description": "Human-readable task instructions"
+      "format": "date-time"
     },
     "created_by": {
       "type": "string",
-      "description": "Node ID of the creator"
+      "example": "mac-tenno"
     },
     "target_node": {
       "type": "string",
-      "description": "Node ID of the intended executor"
+      "example": "tencent-shusho"
     },
     "status": {
       "type": "string",
       "enum": ["pending", "accepted", "in_progress", "completed", "failed"],
       "default": "pending"
     },
-    "priority": {
+    "input_ref": {
       "type": "string",
-      "enum": ["low", "normal", "high"],
-      "default": "normal"
+      "description": "Path or reference to input data"
     },
-    "created_at": {
+    "instructions": {
       "type": "string",
-      "format": "date-time"
-    },
-    "deadline": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "constraints": {
-      "type": "array",
-      "items": { "type": "string" },
-      "description": "Output constraints (e.g. language, format)"
+      "description": "Human-readable task instructions"
     }
   }
 }

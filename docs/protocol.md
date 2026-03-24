@@ -1,45 +1,99 @@
-# Protocol v0
+# Protocol v0 — 定版
 
-## 核心原则
+## 节点
 
-1. **Artifact-based**：节点间传文件，不传大段文本
-2. **One task = one directory**：一个任务一个目录，方便扩展
-3. **Atomic write**：先写 tmp，后 rename
-4. **Unidirectional rsync**：推任务 / 拉结果，单向明确
-5. **Archive, don't delete**：归档而非删除
+| 节点 | 角色 | 名称 |
+|------|------|------|
+| 本地 Mac | Executive | mac-tenno |
+| 腾讯云 | Coordinator | tencent-shusho |
 
-## 最小双节点闭环
+## 目录结构
 
+两端相同：
 ```
-Mac (Executive)                    腾讯云 (Coordinator)
-    │                                    │
-    ├─ write task.json ──► tmp/          │
-    ├─ rename ──► outbox/task_001/       │
-    ├─ rsync push ──────────────────────►├─ inbox/task_001/
-    │                                    ├─ read task.json
-    │                                    ├─ process
-    │                                    ├─ write result.json ──► outbox/task_001/
-    │                                    ├─ archive task
-    │                                    │
-    ├─ rsync pull ◄──────────────────────┤
-    ├─ inbox/task_001/result.json        │
-    ├─ read result.json                  │
-    ├─ archive task                      │
+~/openclaw-multinode/
+├── handoff/
+│   ├── outbox/     # 准备发送
+│   ├── inbox/      # 收到待处理
+│   ├── archive/    # 处理完归档
+│   └── tmp/        # 写入中的临时文件
+├── scripts/
+├── logs/
+├── schemas/
+└── ...
 ```
 
-## task.json schema
+## 任务单位
 
-见 `/schemas/task.json`
+一个任务一个目录：
+```
+handoff/outbox/task-20260324-0001/
+├── task.json
+└── (以后可加: input.txt, output.txt, transcript.json, artifact-001.png, log.txt)
+```
 
-## result.json schema
+## 文件命名
 
-见 `/schemas/result.json`
+- 目录名：`task-YYYYMMDD-NNNN`
+- task.json：固定名
+- result.json：固定名
 
-## v0 验证目标
+## 写入规则：先 tmp，后 rename
 
-只要以下 4 条成立，v0 就算通过：
+1. 写到 `handoff/tmp/task-XXXX/`
+2. 写完后 `mv` 到 `handoff/outbox/task-XXXX/`
 
-1. 两个 OpenClaw 实例都能独立存在
-2. 节点 A 能把 task.json 给节点 B
-3. 节点 B 能返回 result.json
-4. 全流程不依赖长文本上下文中继
+## rsync 命令
+
+SSH 别名（~/.ssh/config）：
+```
+Host tencent-oc
+  HostName <腾讯云IP>
+  User ubuntu
+```
+
+**Mac 推送任务：**
+```bash
+rsync -avz --ignore-existing \
+  ~/openclaw-multinode/handoff/outbox/ \
+  tencent-oc:~/openclaw-multinode/handoff/inbox/
+```
+
+**Mac 拉取结果：**
+```bash
+rsync -avz --ignore-existing \
+  tencent-oc:~/openclaw-multinode/handoff/outbox/ \
+  ~/openclaw-multinode/handoff/inbox/
+```
+
+## 脚本
+
+| 脚本 | 位置 | 作用 |
+|------|------|------|
+| send_task.sh | Mac scripts/ | 创建任务 + 推送 |
+| pull_results.sh | Mac scripts/ | 拉取结果到 inbox |
+| process_once.sh | 腾讯云 scripts/ | 处理一个未处理任务 |
+
+## 最小闭环
+
+```
+Step 1  Mac: send_task.sh 创建 task.json → outbox/
+Step 2  Mac: rsync push → 腾讯云 inbox/
+Step 3  腾讯云: 读取 inbox/task.json
+Step 4  腾讯云: 处理 → 写 result.json → outbox/
+Step 5  Mac: rsync pull → 本地 inbox/
+Step 6  Mac: 读取 inbox/result.json
+```
+
+## 处理规则
+
+- Mac 端：写任务 → rsync push → rsync pull → 读结果 → 归档
+- 腾讯云端：读任务 → 处理 → 写结果 → 归档原任务
+
+## v0 先不做
+
+- sshfs
+- 自动双向实时同步
+- 数据库 task ledger
+- 三节点路由
+- API 服务
