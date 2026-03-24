@@ -3,8 +3,14 @@ node_modules/
 *.log
 .DS_Store
 
-# handoff 实际任务目录（不跟踪内容，只跟踪结构）
-handoff/outbox/task-*
-handoff/inbox/task-*
-handoff/archive/task-*
+# runtime handoff data
+handoff/inbox/*
+!handoff/inbox/.gitkeep
+handoff/outbox/*
+!handoff/outbox/.gitkeep
+handoff/archive/*
+!handoff/archive/.gitkeep
 handoff/tmp/*
+!handoff/tmp/.gitkeep
+logs/*
+!logs/.gitkeep
