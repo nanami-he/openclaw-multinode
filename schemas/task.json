@@ -21,11 +21,11 @@
     },
     "created_by": {
       "type": "string",
-      "example": "mac-tenno"
+      "example": "emperor"
     },
     "target_node": {
       "type": "string",
-      "example": "tencent-shusho"
+      "example": "prime"
     },
     "status": {
       "type": "string",

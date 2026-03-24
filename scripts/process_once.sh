@@ -41,7 +41,7 @@ cat > "$RESULT_TMP/result.json" <<EOF
   "task_id": "$TASK_ID",
   "status": "completed",
   "processed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-  "produced_by": "tencent-shusho",
+  "produced_by": "prime",
   "summary": "$RESULT_SUMMARY",
   "artifacts": []
 }

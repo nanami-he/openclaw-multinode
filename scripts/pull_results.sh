@@ -11,7 +11,7 @@ LOGS="$REPO_DIR/logs"
 echo "📥 从腾讯云拉取结果..."
 
 rsync -avz --ignore-existing \
-  tencent-oc:~/openclaw-multinode/handoff/outbox/ \
+  prime:~/openclaw-multinode/handoff/outbox/ \
   "$HANDOFF/inbox/" \
   2>&1 | tee "$LOGS/pull-$(date +%Y%m%d-%H%M%S).log"
 

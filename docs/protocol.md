@@ -4,8 +4,8 @@
 
 | 节点 | 角色 | 名称 |
 |------|------|------|
-| 本地 Mac | Executive | mac-tenno |
-| 腾讯云 | Coordinator | tencent-shusho |
+| 本地 Mac | Emperor | emperor |
+| 腾讯云 | Prime | prime |
 
 ## 目录结构
 
@@ -47,7 +47,7 @@ handoff/outbox/task-20260324-0001/
 
 SSH 别名（~/.ssh/config）：
 ```
-Host tencent-oc
+Host prime
   HostName <腾讯云IP>
   User ubuntu
 ```
@@ -56,13 +56,13 @@ Host tencent-oc
 ```bash
 rsync -avz --ignore-existing \
   ~/openclaw-multinode/handoff/outbox/ \
-  tencent-oc:~/openclaw-multinode/handoff/inbox/
+  prime:~/openclaw-multinode/handoff/inbox/
 ```
 
 **Mac 拉取结果：**
 ```bash
 rsync -avz --ignore-existing \
-  tencent-oc:~/openclaw-multinode/handoff/outbox/ \
+  prime:~/openclaw-multinode/handoff/outbox/ \
   ~/openclaw-multinode/handoff/inbox/
 ```
 

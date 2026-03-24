@@ -27,8 +27,8 @@ cat > "$TASK_DIR/task.json" <<EOF
   "task_id": "$TASK_ID",
   "task_type": "$TASK_TYPE",
   "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-  "created_by": "mac-tenno",
-  "target_node": "tencent-shusho",
+  "created_by": "emperor",
+  "target_node": "prime",
   "status": "pending",
   "input_ref": "$INPUT_REF",
   "instructions": "$INSTRUCTIONS"
@@ -44,7 +44,7 @@ echo "✅ 任务创建: $TASK_ID → outbox/$TASK_ID/task.json"
 echo "📤 推送到腾讯云..."
 rsync -avz --ignore-existing \
   "$HANDOFF/outbox/" \
-  tencent-oc:~/openclaw-multinode/handoff/inbox/ \
+  prime:~/openclaw-multinode/handoff/inbox/ \
   2>&1 | tee "$LOGS/send-${TASK_ID}.log"
 
 echo "✅ 推送完成"

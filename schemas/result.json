@@ -20,7 +20,7 @@
     },
     "produced_by": {
       "type": "string",
-      "example": "tencent-shusho"
+      "example": "prime"
     },
     "summary": {
       "type": "string",
