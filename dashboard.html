@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>openclaw-multinode 状态看板</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f0f14; color: #e0e0e8; min-height: 100vh; }
+.container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+/* Header */
+header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+header h1 { font-size: 20px; font-weight: 600; color: #fff; }
+.time { font-size: 12px; color: #666; }
+
+/* Nodes */
+.nodes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
+.node { background: #1a1a24; border: 1px solid #2a2a38; border-radius: 12px; padding: 20px; }
+.node-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.node-name { font-size: 14px; font-weight: 600; color: #fff; }
+.node-badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
+.badge-emperor { background: #2d1f4e; color: #a78bfa; }
+.badge-prime { background: #1a2d4e; color: #60a5fa; }
+.status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+.online { background: #22c55e; }
+.offline { background: #ef4444; }
+.node-status { font-size: 12px; color: #888; margin-bottom: 16px; }
+.node-status .online { color: #22c55e; }
+
+/* Handoff dirs */
+.handoff-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.dir { background: #22222e; border-radius: 8px; padding: 10px; text-align: center; }
+.dir-label { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.dir-count { font-size: 24px; font-weight: 700; }
+.count-outbox { color: #f59e0b; }
+.count-inbox { color: #60a5fa; }
+.count-archive { color: #22c55e; }
+.count-tmp { color: #888; }
+
+/* Task timeline */
+.section-title { font-size: 13px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; margin-top: 8px; }
+.timeline { position: relative; padding-left: 24px; }
+.timeline::before { content: ''; position: absolute; left: 7px; top: 0; bottom: 0; width: 2px; background: #2a2a38; }
+.task { position: relative; margin-bottom: 12px; }
+.task::before { content: ''; position: absolute; left: -20px; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: #3a3a4a; border: 2px solid #2a2a38; }
+.task-card { background: #1a1a24; border: 1px solid #2a2a38; border-radius: 8px; padding: 12px 14px; }
+.task-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.task-id { font-size: 12px; font-weight: 600; color: #60a5fa; font-family: 'SF Mono', monospace; }
+.task-status { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 500; }
+.status-pending { background: #2d2a1a; color: #f59e0b; }
+.status-completed { background: #1a2d1a; color: #22c55e; }
+.status-failed { background: #2d1a1a; color: #ef4444; }
+.status-inprogress { background: #1a2d4e; color: #60a5fa; }
+.task-instructions { font-size: 12px; color: #888; line-height: 1.5; }
+.task-time { font-size: 10px; color: #444; margin-top: 4px; }
+.task-node { font-size: 10px; color: #555; }
+
+/* Flow diagram */
+.flow { display: flex; justify-content: center; align-items: center; gap: 0; margin: 24px 0; }
+.flow-node { background: #1a1a24; border: 1px solid #2a2a38; border-radius: 8px; padding: 10px 16px; text-align: center; min-width: 90px; }
+.flow-node .label { font-size: 10px; color: #555; margin-top: 2px; }
+.flow-arrow { color: #333; font-size: 18px; padding: 0 8px; }
+
+/* Legend */
+.legend { display: flex; justify-content: center; gap: 20px; margin-bottom: 24px; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #666; }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* Footer */
+footer { text-align: center; font-size: 11px; color: #333; margin-top: 40px; padding: 16px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+<div>
+  <h1>🔗 openclaw-multinode 状态看板</h1>
+  <div class="time">实时 · 最后更新: <span id="update-time"></span></div>
+</div>
+</header>
+
+<!-- Flow diagram -->
+<div class="flow">
+  <div class="flow-node">
+    <div>👑</div>
+    <div class="label">Emperor</div>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-node">
+    <div>🍰</div>
+    <div class="label">Chamberlain</div>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-node">
+    <div>📦</div>
+    <div class="label">handoff</div>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-node">
+    <div>⚡</div>
+    <div class="label">Prime</div>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-node">
+    <div>📦</div>
+    <div class="label">result</div>
+  </div>
+  <div class="flow-arrow">←</div>
+  <div class="flow-node">
+    <div>🍰</div>
+    <div class="label">Chamberlain</div>
+  </div>
+</div>
+
+<!-- Legend -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>outbox (待发送)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#60a5fa"></div>inbox (处理中)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div>archive (已完成)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#888"></div>tmp (写入中)</div>
+</div>
+
+<!-- Nodes -->
+<div class="nodes">
+  <div class="node">
+    <div class="node-header">
+      <div class="node-name">🍰 Lord Chamberlain</div>
+      <div><span class="node-badge badge-emperor">本地 Mac</span></div>
+    </div>
+    <div class="node-status">
+      <span class="status-dot online"></span>
+      <span class="online">在线 · Emperor 的贴身近臣</span>
+    </div>
+    <div class="handoff-grid">
+      <div class="dir"><div class="dir-label">outbox</div><div class="dir-count count-outbox" id="ch-outbox">-</div></div>
+      <div class="dir"><div class="dir-label">inbox</div><div class="dir-count count-inbox" id="ch-inbox">-</div></div>
+      <div class="dir"><div class="dir-label">archive</div><div class="dir-count count-archive" id="ch-archive">-</div></div>
+      <div class="dir"><div class="dir-label">tmp</div><div class="dir-count count-tmp" id="ch-tmp">-</div></div>
+    </div>
+  </div>
+
+  <div class="node">
+    <div class="node-header">
+      <div class="node-name">⚡ Prime Minister</div>
+      <div><span class="node-badge badge-prime">腾讯云</span></div>
+    </div>
+    <div class="node-status">
+      <span class="status-dot online"></span>
+      <span class="online">在线 · 常驻协调执行节点</span>
+    </div>
+    <div class="handoff-grid">
+      <div class="dir"><div class="dir-label">outbox</div><div class="dir-count count-outbox" id="pm-outbox">-</div></div>
+      <div class="dir"><div class="dir-label">inbox</div><div class="dir-count count-inbox" id="pm-inbox">-</div></div>
+      <div class="dir"><div class="dir-label">archive</div><div class="dir-count count-archive" id="pm-archive">-</div></div>
+      <div class="dir"><div class="dir-label">tmp</div><div class="dir-count count-tmp" id="pm-tmp">-</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Task history -->
+<div class="section-title">📋 任务记录</div>
+<div class="timeline" id="task-list">
+  <!-- filled by JS -->
+</div>
+
+<footer>
+  openclaw-multinode · 多节点协作原型 · v1-prime-execution
+</footer>
+</div>
+
+<script>
+// Static data from last scan
+const data = {
+  chamberlain: {
+    outbox: ['task-20260324-0002', 'task-20260324-0004'],
+    inbox: ['task-20260324-0001', 'task-20260324-0002'],
+    archive: ['task-20260324-0001', 'task-20260324-0002'],
+    tmp: []
+  },
+  prime: {
+    outbox: ['task-20260324-0001', 'task-20260324-0002'],
+    inbox: ['task-20260324-0002', 'task-20260324-0004'],
+    archive: ['task-20260324-0001', 'task-20260324-0002'],
+    tmp: []
+  }
+};
+
+const taskInfo = {
+  'task-20260324-0001': { status: 'completed', time: '14:47', node: 'prime', instructions: '测试任务：验证双节点闭环' },
+  'task-20260324-0002': { status: 'completed', time: '16:39', node: 'prime', instructions: 'Summarize what you are and your role in one paragraph.' },
+  'task-20260324-0003': { status: 'pending', time: '待创建', node: 'chamberlain', instructions: '' },
+  'task-20260324-0004': { status: 'inbox', time: '19:20', node: 'chamberlain', instructions: '分析 nodeskclaw 项目' }
+};
+
+// Fill counts
+document.getElementById('ch-outbox').textContent = data.chamberlain.outbox.length;
+document.getElementById('ch-inbox').textContent = data.chamberlain.inbox.length;
+document.getElementById('ch-archive').textContent = data.chamberlain.archive.length;
+document.getElementById('ch-tmp').textContent = data.chamberlain.tmp.length;
+document.getElementById('pm-outbox').textContent = data.prime.outbox.length;
+document.getElementById('pm-inbox').textContent = data.prime.inbox.length;
+document.getElementById('pm-archive').textContent = data.prime.archive.length;
+document.getElementById('pm-tmp').textContent = data.prime.tmp.length;
+
+// Build task list
+const tasks = [
+  { id: 'task-20260324-0001', status: 'completed', time: '14:47', node: 'chamberlain→prime', instructions: '验证双节点闭环' },
+  { id: 'task-20260324-0002', status: 'completed', time: '16:39', node: 'chamberlain→prime', instructions: 'Prime 身份验证' },
+  { id: 'task-20260324-0004', status: 'inbox', time: '19:20', node: 'chamberlain→prime', instructions: '分析 nodeskclaw 项目' }
+];
+
+const taskList = document.getElementById('task-list');
+tasks.forEach(t => {
+  const statusLabel = { completed: '已完成', inbox: '处理中', pending: '待处理', failed: '失败' };
+  const statusClass = { completed: 'status-completed', inbox: 'status-inprogress', pending: 'status-pending', failed: 'status-failed' };
+  const dotColor = { completed: '#22c55e', inbox: '#60a5fa', pending: '#f59e0b', failed: '#ef4444' };
+  
+  const div = document.createElement('div');
+  div.className = 'task';
+  div.innerHTML = `
+    <div class="task-card">
+      <div class="task-meta">
+        <span class="task-id">${t.id}</span>
+        <span class="task-status ${statusClass[t.status]}">${statusLabel[t.status]}</span>
+      </div>
+      <div class="task-instructions">${t.instructions}</div>
+      <div class="task-time">${t.time} · ${t.node}</div>
+    </div>
+  `;
+  div.querySelector('.task').style.setProperty('--dot-color', dotColor[t.status]);
+  taskList.appendChild(div);
+});
+
+// Update time
+document.getElementById('update-time').textContent = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+</script>
+</body>
+</html>
