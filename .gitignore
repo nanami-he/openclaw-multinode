@@ -2,3 +2,9 @@ node_modules/
 .env
 *.log
 .DS_Store
+
+# handoff 实际任务目录（不跟踪内容，只跟踪结构）
+handoff/outbox/task-*
+handoff/inbox/task-*
+handoff/archive/task-*
+handoff/tmp/*
