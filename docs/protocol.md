@@ -1,57 +1,45 @@
-# Protocol
+# Protocol v0
 
-## Overview
+## 核心原则
 
-Communication between nodes follows a simple artifact-based protocol:
+1. **Artifact-based**：节点间传文件，不传大段文本
+2. **One task = one directory**：一个任务一个目录，方便扩展
+3. **Atomic write**：先写 tmp，后 rename
+4. **Unidirectional rsync**：推任务 / 拉结果，单向明确
+5. **Archive, don't delete**：归档而非删除
 
-1. Coordinator creates a `task.json` in the shared handoff directory
-2. Worker picks up the task, processes it
-3. Worker produces a `result.json` in the shared handoff directory
-4. Coordinator reads the result
-
-## Handoff directory structure
-
-```
-shared/handoff/
-├── inbox/      # Incoming tasks/results
-├── outbox/     # Outgoing tasks/results
-├── completed/  # Archived completed tasks
-└── failed/     # Archived failed tasks
-```
-
-## Task lifecycle
+## 最小双节点闭环
 
 ```
-pending → accepted → in_progress → completed
-                   ↘ failed → retried → ...
+Mac (Executive)                    腾讯云 (Coordinator)
+    │                                    │
+    ├─ write task.json ──► tmp/          │
+    ├─ rename ──► outbox/task_001/       │
+    ├─ rsync push ──────────────────────►├─ inbox/task_001/
+    │                                    ├─ read task.json
+    │                                    ├─ process
+    │                                    ├─ write result.json ──► outbox/task_001/
+    │                                    ├─ archive task
+    │                                    │
+    ├─ rsync pull ◄──────────────────────┤
+    ├─ inbox/task_001/result.json        │
+    ├─ read result.json                  │
+    ├─ archive task                      │
 ```
 
-## File naming convention
+## task.json schema
 
-```
-{timestamp}_{task_id}_{type}.json
+见 `/schemas/task.json`
 
-Example:
-20260324_023000_task_001_task.json
-20260324_023500_task_001_result.json
-```
+## result.json schema
 
-## Minimal handoff flow
+见 `/schemas/result.json`
 
-```
-Node A                          Node B
-  │                               │
-  ├─ write task.json ────────────►│
-  │                               ├─ read task.json
-  │                               ├─ process
-  │                               ├─ write result.json
-  │◄──────────────── result.json ─┤
-  ├─ read result.json             │
-  ├─ update ledger                │
-```
+## v0 验证目标
 
-## Security model (future)
+只要以下 4 条成立，v0 就算通过：
 
-- Node authentication via shared token or A2A
-- Workspace sovereignty: no direct write access
-- Artifacts signed or checksummed
+1. 两个 OpenClaw 实例都能独立存在
+2. 节点 A 能把 task.json 给节点 B
+3. 节点 B 能返回 result.json
+4. 全流程不依赖长文本上下文中继
