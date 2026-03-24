@@ -14,7 +14,10 @@ LOGS="$REPO_DIR/logs"
 
 # 生成 task_id: task-YYYYMMDD-NNNN
 DATE_PART=$(date +%Y%m%d)
-EXISTING=$(ls -d "$HANDOFF"/outbox/task-${DATE_PART}-* "$HANDOFF"/archive/task-${DATE_PART}-* 2>/dev/null | wc -l)
+EXISTING=0
+for d in "$HANDOFF"/outbox/task-${DATE_PART}-* "$HANDOFF"/archive/task-${DATE_PART}-*; do
+  [ -d "$d" ] && EXISTING=$((EXISTING + 1))
+done
 SEQ=$(printf "%04d" $((EXISTING + 1)))
 TASK_ID="task-${DATE_PART}-${SEQ}"
 
